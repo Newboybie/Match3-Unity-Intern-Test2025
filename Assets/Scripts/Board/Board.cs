@@ -70,6 +70,16 @@ public class Board
             }
         }
 
+        // make five empty cells at the bottom of the board
+        for (int i = 0; i < 5; i++)
+        {
+            GameObject go = GameObject.Instantiate(prefabBG);
+            Vector3 emptyCellPosOffset = new Vector3(i - 0.5f, -1.5f, 0f);
+
+            go.transform.position = origin + emptyCellPosOffset;
+
+            Cell cell = go.GetComponent<Cell>();
+        }
     }
 
     internal void Fill()
