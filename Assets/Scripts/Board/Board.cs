@@ -18,8 +18,10 @@ public class Board
     private int boardSizeX;
 
     private int boardSizeY;
+    private int numEmptyCells;
 
     private Cell[,] m_cells;
+    private Cell[] m_bottomCells;
 
     private Transform m_root;
 
@@ -33,8 +35,10 @@ public class Board
 
         this.boardSizeX = gameSettings.BoardSizeX;
         this.boardSizeY = gameSettings.BoardSizeY;
+        this.numEmptyCells = gameSettings.NumberOfEmptyCells;
 
         m_cells = new Cell[boardSizeX, boardSizeY];
+        m_bottomCells = new Cell[numEmptyCells];
 
         CreateBoard();
     }
@@ -71,7 +75,7 @@ public class Board
         }
 
         // make five empty cells at the bottom of the board
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < numEmptyCells; i++)
         {
             GameObject go = GameObject.Instantiate(prefabBG);
             Vector3 emptyCellPosOffset = new Vector3(i - 0.5f, -1.5f, 0f);
@@ -79,6 +83,9 @@ public class Board
             go.transform.position = origin + emptyCellPosOffset;
 
             Cell cell = go.GetComponent<Cell>();
+            cell.Setup(i, -1);
+            m_bottomCells[i] = cell;
+            cell.Free();
         }
     }
 
@@ -145,6 +152,30 @@ public class Board
         }
     }
 
+    // find first empty (bottom-most) cell in the given c
+    internal Cell FindBottomEmptyCell(int columnX)
+    {
+        for (int y = 0; y < numEmptyCells; y++)
+        {
+            var cell = m_bottomCells[y];
+            if (cell != null && cell.IsEmpty)
+                return cell;
+        }
+        return null;
+    }
+
+    // move item from source cell to target cell with animation, then invoke callback
+    internal void MoveItemToCell(Cell source, Cell target, Action callback)
+    {
+        if (source == null || target == null) { callback?.Invoke(); return; }
+        Item item = source.Item;
+        if (item == null) { callback?.Invoke(); return; }
+
+        source.Free();
+        target.Assign(item);
+
+        item.View.DOMove(target.transform.position, 0.3f).OnComplete(() => callback?.Invoke());
+    }
 
     internal void FillGapsWithNewItems()
     {

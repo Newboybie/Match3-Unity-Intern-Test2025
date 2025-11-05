@@ -49,7 +49,7 @@ public class BoardController : MonoBehaviour
     private void Fill()
     {
         m_board.Fill();
-        FindMatchesAndCollapse();
+        //FindMatchesAndCollapse();
     }
 
     private void OnGameStateChange(GameManager.eStateGame state)
@@ -75,7 +75,7 @@ public class BoardController : MonoBehaviour
         if (m_gameOver) return;
         if (IsBusy) return;
 
-        if (!m_hintIsShown)
+        if(false) // (!m_hintIsShown)
         {
             m_timeAfterFill += Time.deltaTime;
             if (m_timeAfterFill > m_gameSettings.TimeForHint)
@@ -85,6 +85,7 @@ public class BoardController : MonoBehaviour
             }
         }
 
+        // Mouse down: record hit, position and time for tap detection
         if (Input.GetMouseButtonDown(0))
         {
             var hit = Physics2D.Raycast(m_cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
@@ -95,11 +96,32 @@ public class BoardController : MonoBehaviour
             }
         }
 
+        // Mouse up: detect tap and handle tap-to-bottom
         if (Input.GetMouseButtonUp(0))
         {
+
+            if (m_hitCollider != null) // Tap detected
+            {
+                Cell tapped = m_hitCollider.GetComponent<Cell>();
+                if (tapped != null && !tapped.IsEmpty)
+                {
+                    Cell bottomEmpty = m_board.FindBottomEmptyCell(tapped.BoardX);
+                    if (bottomEmpty != null)
+                    {
+                        IsBusy = true;
+                        m_board.MoveItemToCell(tapped, bottomEmpty, () =>
+                        {
+                            StartCoroutine(ShiftDownItemsCoroutine());
+                        });
+                    }
+                }
+            }
+
             ResetRayCast();
         }
 
+        // Drag / swap logic commented out for now (focus on tap)
+        /*
         if (Input.GetMouseButton(0) && m_isDragging)
         {
             var hit = Physics2D.Raycast(m_cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
@@ -129,6 +151,7 @@ public class BoardController : MonoBehaviour
                 ResetRayCast();
             }
         }
+        */
     }
 
     private void ResetRayCast()
@@ -240,9 +263,10 @@ public class BoardController : MonoBehaviour
 
         m_board.FillGapsWithNewItems();
 
-        yield return new WaitForSeconds(0.2f);
+        // yield return new WaitForSeconds(0.2f);
 
-        FindMatchesAndCollapse();
+        // FindMatchesAndCollapse();
+        IsBusy = false;
     }
 
     private IEnumerator RefillBoardCoroutine()
@@ -255,7 +279,7 @@ public class BoardController : MonoBehaviour
 
         yield return new WaitForSeconds(0.2f);
 
-        FindMatchesAndCollapse();
+        // FindMatchesAndCollapse();
     }
 
     private IEnumerator ShuffleBoardCoroutine()
@@ -264,7 +288,7 @@ public class BoardController : MonoBehaviour
 
         yield return new WaitForSeconds(0.3f);
 
-        FindMatchesAndCollapse();
+        // FindMatchesAndCollapse();
     }
 
 

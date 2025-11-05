@@ -8,6 +8,8 @@ public class GameSettings : ScriptableObject
 
     public int BoardSizeY = 5;
 
+    public int NumberOfEmptyCells = 5;
+
     public int MatchesMin = 3;
 
     public int LevelMoves = 16;
