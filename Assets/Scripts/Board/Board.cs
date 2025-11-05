@@ -78,7 +78,7 @@ public class Board
         for (int i = 0; i < numEmptyCells; i++)
         {
             GameObject go = GameObject.Instantiate(prefabBG);
-            Vector3 emptyCellPosOffset = new Vector3(i - 0.5f, -1.5f, 0f);
+            Vector3 emptyCellPosOffset = new Vector3(i, -1.5f, 0f);
 
             go.transform.position = origin + emptyCellPosOffset;
 
@@ -89,35 +89,47 @@ public class Board
         }
     }
 
+    // Make sure the board is filled with items, with each type appearing in multiples of three
     internal void Fill()
     {
+        int totalCells = boardSizeX * boardSizeY;
+        int numTypes = Enum.GetValues(typeof(NormalItem.eNormalType)).Length;
+
+        int units = totalCells / 3; 
+
+        int baseUnits = units / numTypes;
+        int remainder = units % numTypes;
+
+        int[] unitsPerType = new int[numTypes];
+        for (int t = 0; t < numTypes; t++)
+        {
+            unitsPerType[t] = baseUnits + (t < remainder ? 1 : 0);
+        }
+
+        List<NormalItem.eNormalType> pool = new List<NormalItem.eNormalType>(totalCells);
+        for (int t = 0; t < numTypes; t++)
+        {
+            int count = unitsPerType[t] * 3;
+            for (int k = 0; k < count; k++) pool.Add((NormalItem.eNormalType)t);
+        }
+
+        // shuffle pool (Fisher-Yates)
+        for (int i = pool.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            var tmp = pool[i];
+            pool[i] = pool[j];
+            pool[j] = tmp;
+        }
+
+        int idx = 0;
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
             {
                 Cell cell = m_cells[x, y];
                 NormalItem item = new NormalItem();
-
-                List<NormalItem.eNormalType> types = new List<NormalItem.eNormalType>();
-                if (cell.NeighbourBottom != null)
-                {
-                    NormalItem nitem = cell.NeighbourBottom.Item as NormalItem;
-                    if (nitem != null)
-                    {
-                        types.Add(nitem.ItemType);
-                    }
-                }
-
-                if (cell.NeighbourLeft != null)
-                {
-                    NormalItem nitem = cell.NeighbourLeft.Item as NormalItem;
-                    if (nitem != null)
-                    {
-                        types.Add(nitem.ItemType);
-                    }
-                }
-
-                item.SetType(Utils.GetRandomNormalTypeExcept(types.ToArray()));
+                item.SetType(pool[idx++]);
                 item.SetView();
                 item.SetViewRoot(m_root);
 
@@ -152,8 +164,8 @@ public class Board
         }
     }
 
-    // find first empty (bottom-most) cell in the given c
-    internal Cell FindBottomEmptyCell(int columnX)
+    // find first empty (bottom-most) cell
+    internal Cell FindBottomEmptyCell()
     {
         for (int y = 0; y < numEmptyCells; y++)
         {
@@ -175,6 +187,19 @@ public class Board
         target.Assign(item);
 
         item.View.DOMove(target.transform.position, 0.3f).OnComplete(() => callback?.Invoke());
+    }
+
+
+    public bool CheckAllCellEmpty()
+    {
+        for (int x = 0; x < boardSizeX; x++)
+        {
+            for (int y = 0; y < boardSizeY; y++)
+            {
+                if (m_cells[x, y].Item != null) return false;
+            }
+        }
+        return true;
     }
 
     internal void FillGapsWithNewItems()
@@ -720,33 +745,31 @@ public class Board
     internal List<List<Cell>> FindBottomMatches()
     {
         var results = new List<List<Cell>>();
+        if (m_bottomCells == null || m_bottomCells.Length == 0) return results;
 
-        for (int i = 0; i < numEmptyCells;)
+        bool[] processed = new bool[numEmptyCells];
+
+        for (int i = 0; i < numEmptyCells; i++)
         {
-            Cell start = m_bottomCells[i];
-            if (start != null && !start.IsEmpty)
+            if (processed[i]) continue;
+
+            Cell baseCell = m_bottomCells[i];
+            if (baseCell == null || baseCell.IsEmpty) continue;
+
+            var group = new List<Cell>();
+            for (int j = 0; j < numEmptyCells; j++)
             {
-                var run = new List<Cell> { start };
-                int j = i + 1;
-                while (j < numEmptyCells)
+                Cell c = m_bottomCells[j];
+                if (c != null && !c.IsEmpty && c.IsSameType(baseCell))
                 {
-                    var next = m_bottomCells[j];
-                    if (next != null && !next.IsEmpty && next.IsSameType(start))
-                    {
-                        run.Add(next);
-                        j++;
-                    }
-                    else break;
+                    group.Add(c);
+                    processed[j] = true;
                 }
-
-                if (run.Count >= m_matchMin)
-                    results.Add(run);
-
-                i = j;
             }
-            else
+
+            if (group.Count >= m_matchMin)
             {
-                i++;
+                results.Add(group);
             }
         }
 

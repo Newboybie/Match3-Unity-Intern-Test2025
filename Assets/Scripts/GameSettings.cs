@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class GameSettings : ScriptableObject
 {
-    public int BoardSizeX = 5;
+    public int BoardSizeX = 6;
 
-    public int BoardSizeY = 5;
+    public int BoardSizeY = 6;
 
     public int NumberOfEmptyCells = 5;
 
