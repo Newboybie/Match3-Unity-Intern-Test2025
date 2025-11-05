@@ -111,8 +111,9 @@ public class BoardController : MonoBehaviour
                         IsBusy = true;
                         m_board.MoveItemToCell(tapped, bottomEmpty, () =>
                         {
-                            StartCoroutine(ShiftDownItemsCoroutine());
+                            StartCoroutine(CheckMatchedBottomRow());
                         });
+
                     }
                 }
             }
@@ -263,9 +264,33 @@ public class BoardController : MonoBehaviour
 
         m_board.FillGapsWithNewItems();
 
-        // yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.2f);
 
-        // FindMatchesAndCollapse();
+        FindMatchesAndCollapse();
+    }
+
+    private IEnumerator CheckMatchedBottomRow()
+    {
+        while (true)
+        {
+
+            // Check and resolve bottom matches (if any)
+            var bottomGroups = m_board.FindBottomMatches();
+            if (bottomGroups != null && bottomGroups.Count > 0)
+            {
+                // Explode and clear each bottom group
+                foreach (var group in bottomGroups)
+                {
+                    m_board.ExplodeBottomMatchGroup(group);
+                }
+
+                // wait for explode animations to play
+                yield return new WaitForSeconds(0.25f);
+                continue;
+            }
+            break;
+        }
+
         IsBusy = false;
     }
 

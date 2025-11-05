@@ -715,4 +715,58 @@ public class Board
             }
         }
     }
+
+    // find contiguous bottom-row matches (returns list of match groups)
+    internal List<List<Cell>> FindBottomMatches()
+    {
+        var results = new List<List<Cell>>();
+
+        for (int i = 0; i < numEmptyCells;)
+        {
+            Cell start = m_bottomCells[i];
+            if (start != null && !start.IsEmpty)
+            {
+                var run = new List<Cell> { start };
+                int j = i + 1;
+                while (j < numEmptyCells)
+                {
+                    var next = m_bottomCells[j];
+                    if (next != null && !next.IsEmpty && next.IsSameType(start))
+                    {
+                        run.Add(next);
+                        j++;
+                    }
+                    else break;
+                }
+
+                if (run.Count >= m_matchMin)
+                    results.Add(run);
+
+                i = j;
+            }
+            else
+            {
+                i++;
+            }
+        }
+
+        return results;
+    }
+
+    // explode and clear a bottom match group (animates via Cell.ExplodeItem and frees)
+    internal void ExplodeBottomMatchGroup(List<Cell> group)
+    {
+        if (group == null || group.Count == 0) return;
+
+        foreach (var cell in group)
+        {
+            cell.ExplodeItem();
+        }
+
+        // ensure they become empty after explosion
+        foreach (var cell in group)
+        {
+            cell.Free();
+        }
+    }
 }
