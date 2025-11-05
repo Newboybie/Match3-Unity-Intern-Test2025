@@ -64,7 +64,7 @@ public class BoardController : MonoBehaviour
                 break;
             case GameManager.eStateGame.GAME_OVER:
                 m_gameOver = true;
-                StopHints();
+                // StopHints();
                 break;
         }
     }
@@ -75,7 +75,7 @@ public class BoardController : MonoBehaviour
         if (m_gameOver) return;
         if (IsBusy) return;
 
-        if(false) // (!m_hintIsShown)
+        if (false) // (!m_hintIsShown)
         {
             m_timeAfterFill += Time.deltaTime;
             if (m_timeAfterFill > m_gameSettings.TimeForHint)
@@ -105,54 +105,55 @@ public class BoardController : MonoBehaviour
                 Cell tapped = m_hitCollider.GetComponent<Cell>();
                 if (tapped != null && !tapped.IsEmpty)
                 {
-                    Cell bottomEmpty = m_board.FindBottomEmptyCell(tapped.BoardX);
+                    Cell bottomEmpty = m_board.FindBottomEmptyCell();
                     if (bottomEmpty != null)
                     {
-                        IsBusy = true;
+                        OnGameStateChange(GameManager.eStateGame.PAUSE);
                         m_board.MoveItemToCell(tapped, bottomEmpty, () =>
                         {
                             StartCoroutine(CheckMatchedBottomRow());
                         });
-
                     }
                 }
-            }
-
-            ResetRayCast();
-        }
-
-        // Drag / swap logic commented out for now (focus on tap)
-        /*
-        if (Input.GetMouseButton(0) && m_isDragging)
-        {
-            var hit = Physics2D.Raycast(m_cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit.collider != null)
-            {
-                if (m_hitCollider != null && m_hitCollider != hit.collider)
-                {
-                    StopHints();
-
-                    Cell c1 = m_hitCollider.GetComponent<Cell>();
-                    Cell c2 = hit.collider.GetComponent<Cell>();
-                    if (AreItemsNeighbor(c1, c2))
-                    {
-                        IsBusy = true;
-                        SetSortingLayer(c1, c2);
-                        m_board.Swap(c1, c2, () =>
-                        {
-                            FindMatchesAndCollapse(c1, c2);
-                        });
-
-                        ResetRayCast();
-                    }
-                }
-            }
-            else
-            {
                 ResetRayCast();
+                CheckIfGameWin();
+                CheckIfGameOver();
             }
+
+            // Drag / swap logic commented out for now (focus on tap)
+            /*
+            if (Input.GetMouseButton(0) && m_isDragging)
+            {
+                var hit = Physics2D.Raycast(m_cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+                if (hit.collider != null)
+                {
+                    if (m_hitCollider != null && m_hitCollider != hit.collider)
+                    {
+                        StopHints();
+
+                        Cell c1 = m_hitCollider.GetComponent<Cell>();
+                        Cell c2 = hit.collider.GetComponent<Cell>();
+                        if (AreItemsNeighbor(c1, c2))
+                        {
+                            IsBusy = true;
+                            SetSortingLayer(c1, c2);
+                            m_board.Swap(c1, c2, () =>
+                            {
+                                FindMatchesAndCollapse(c1, c2);
+                            });
+
+                            ResetRayCast();
+                        }
+                    }
+                }
+                else
+                {
+                    ResetRayCast();
+                }
+            }
+            */
         }
-        */
+
     }
 
     private void ResetRayCast()
@@ -271,27 +272,35 @@ public class BoardController : MonoBehaviour
 
     private IEnumerator CheckMatchedBottomRow()
     {
-        while (true)
+        var bottomGroups = m_board.FindBottomMatches();
+        if (bottomGroups != null && bottomGroups.Count > 0)
         {
-
-            // Check and resolve bottom matches (if any)
-            var bottomGroups = m_board.FindBottomMatches();
-            if (bottomGroups != null && bottomGroups.Count > 0)
+            foreach (var group in bottomGroups)
             {
-                // Explode and clear each bottom group
-                foreach (var group in bottomGroups)
-                {
-                    m_board.ExplodeBottomMatchGroup(group);
-                }
-
-                // wait for explode animations to play
-                yield return new WaitForSeconds(0.25f);
-                continue;
+                m_board.ExplodeBottomMatchGroup(group);
             }
-            break;
+            yield return new WaitForSeconds(0.25f);
         }
+        
+        OnGameStateChange(GameManager.eStateGame.GAME_STARTED);
+    }
 
-        IsBusy = false;
+    private void CheckIfGameWin()
+    {
+        StartCoroutine(CheckMatchedBottomRow());
+        if(m_board.CheckAllCellEmpty())
+        {
+            Debug.Log("Winnnn!!!!!!");
+            m_gameManager.SetState(GameManager.eStateGame.GAME_WIN);
+        }
+    }
+    private void CheckIfGameOver()
+    {
+        StartCoroutine(CheckMatchedBottomRow());
+        if (m_board.FindBottomEmptyCell() == null)
+        {
+            m_gameManager.SetState(GameManager.eStateGame.GAME_OVER);
+        }
     }
 
     private IEnumerator RefillBoardCoroutine()

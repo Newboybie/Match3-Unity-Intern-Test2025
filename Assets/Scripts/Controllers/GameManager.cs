@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
         GAME_STARTED,
         PAUSE,
         GAME_OVER,
+        GAME_WIN
     }
 
     private eStateGame m_state;
