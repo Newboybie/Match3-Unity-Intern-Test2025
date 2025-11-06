@@ -189,6 +189,59 @@ public class Board
         item.View.DOMove(target.transform.position, 0.3f).OnComplete(() => callback?.Invoke());
     }
 
+    public void PerformAutoMove(Action callback,bool autoWin = false)
+    {
+        if (!autoWin)
+        {
+            MakeRandomValidMove(callback);
+            return;
+        }
+        else
+        {
+            if (CheckAllBottomCellEmpty())
+            {
+                MakeRandomValidMove(callback);
+                return;
+            }
+            else
+            {
+                Cell cell = FindRandomValidCell();
+                int cnt = 0;
+                while (!cell.IsSameType(m_bottomCells[0]))
+                {
+                    cell = FindRandomValidCell();
+                    cnt += 1;
+                    if(cnt > 36)  // to avoid infinite loop, there are 36 cells, so 36 tries is enough
+                    {
+                        MakeRandomValidMove(callback);
+                        return;
+                    }
+                }
+                MoveItemToCell(cell, FindBottomEmptyCell(), callback);
+                return;
+            }
+        }
+    }
+
+    private void MakeRandomValidMove(Action callback)
+    {
+        Cell cell = FindRandomValidCell();
+        MoveItemToCell(cell, FindBottomEmptyCell(), callback);
+        return;
+    }
+
+    private Cell FindRandomValidCell()
+    {
+        int indexX = 0;
+        int indexY = 0;
+        while (m_cells[indexX, indexY].IsEmpty)
+        {
+            indexX = UnityEngine.Random.Range(0, boardSizeX);
+            indexY = UnityEngine.Random.Range(0, boardSizeY);
+        }
+        Cell cell = m_cells[indexX, indexY];
+        return cell;
+    }
 
     public bool CheckAllCellEmpty()
     {
@@ -198,6 +251,15 @@ public class Board
             {
                 if (m_cells[x, y].Item != null) return false;
             }
+        }
+        return true;
+    }
+
+    public bool CheckAllBottomCellEmpty()
+    {
+        for (int i = 0; i < numEmptyCells; i++)
+        {
+            if (m_bottomCells[i].Item != null) return false;
         }
         return true;
     }

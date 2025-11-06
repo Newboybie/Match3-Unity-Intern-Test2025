@@ -156,6 +156,46 @@ public class BoardController : MonoBehaviour
 
     }
 
+    public void PerformAutoPlay(bool autoWin)
+    {
+        if(autoWin == true)
+        {
+            StartCoroutine(PerfomAutoPlayToWin());
+            return;
+        }
+        else
+        {
+            StartCoroutine(PerfomAutoPlayToLose());
+            return;
+        }
+    }
+
+    private IEnumerator PerfomAutoPlayToLose()
+    {
+        while(CheckIfGameOver() == false)
+        {
+            yield return new WaitForSeconds(0.5f);
+            Debug.Log("Auto Play Move To Lose");
+            m_board.PerformAutoMove(() =>
+            {
+                StartCoroutine(CheckMatchedBottomRow());
+            });
+            
+        }
+    }
+
+    private IEnumerator PerfomAutoPlayToWin()
+    {
+        while(CheckIfGameWin() == false)
+        {
+            yield return new WaitForSeconds(0.5f);
+            m_board.PerformAutoMove(() =>
+            {
+                StartCoroutine(CheckMatchedBottomRow());
+            }, true);
+        }
+    }
+
     private void ResetRayCast()
     {
         m_isDragging = false;
@@ -285,22 +325,26 @@ public class BoardController : MonoBehaviour
         OnGameStateChange(GameManager.eStateGame.GAME_STARTED);
     }
 
-    private void CheckIfGameWin()
+    private bool CheckIfGameWin()
     {
         StartCoroutine(CheckMatchedBottomRow());
         if(m_board.CheckAllCellEmpty())
         {
             Debug.Log("Winnnn!!!!!!");
             m_gameManager.SetState(GameManager.eStateGame.GAME_WIN);
+            return true;
         }
+        return false;
     }
-    private void CheckIfGameOver()
+    private bool CheckIfGameOver()
     {
         StartCoroutine(CheckMatchedBottomRow());
         if (m_board.FindBottomEmptyCell() == null)
         {
             m_gameManager.SetState(GameManager.eStateGame.GAME_OVER);
+            return true;
         }
+        return false;
     }
 
     private IEnumerator RefillBoardCoroutine()

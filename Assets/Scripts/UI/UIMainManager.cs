@@ -112,6 +112,16 @@ public class UIMainManager : MonoBehaviour
         m_gameManager.LoadLevel(GameManager.eLevelMode.MOVES);
     }
 
+    internal void LoadLevelAutoPlay()
+    {
+        m_gameManager.LoadLevel(GameManager.eLevelMode.MOVES, autoWin: true);
+    }
+
+    internal void LoadLevelAutoLose()
+    {
+        m_gameManager.LoadLevel(GameManager.eLevelMode.MOVES, autoWin: false);
+    }
+
     internal void LoadLevelTimer()
     {
         m_gameManager.LoadLevel(GameManager.eLevelMode.TIMER);

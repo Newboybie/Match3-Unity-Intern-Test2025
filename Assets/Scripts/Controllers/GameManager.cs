@@ -103,6 +103,28 @@ public class GameManager : MonoBehaviour
         State = eStateGame.GAME_STARTED;
     }
 
+    public void LoadLevel(eLevelMode mode, bool autoWin)
+    {
+        m_boardController = new GameObject("BoardController").AddComponent<BoardController>();
+        m_boardController.StartGame(this, m_gameSettings);
+
+        if (mode == eLevelMode.MOVES)
+        {
+            m_levelCondition = this.gameObject.AddComponent<LevelMoves>();
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), m_boardController);
+            m_boardController.PerformAutoPlay(autoWin);
+        }
+        else if (mode == eLevelMode.TIMER)
+        {
+            m_levelCondition = this.gameObject.AddComponent<LevelTime>();
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), this);
+        }
+
+        m_levelCondition.ConditionCompleteEvent += GameOver;
+
+        State = eStateGame.GAME_STARTED;
+    }
+
     public void GameOver()
     {
         StartCoroutine(WaitBoardController());
