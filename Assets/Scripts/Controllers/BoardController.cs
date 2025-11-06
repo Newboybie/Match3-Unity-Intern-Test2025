@@ -360,6 +360,10 @@ public class BoardController : MonoBehaviour
         StartCoroutine(CheckMatchedBottomRow());
         if (m_board.FindBottomEmptyCell() == null)
         {
+            if(m_board.IsTimerMode == true)
+            {
+                return false;
+            }
             Debug.Log("Game Over!!!!!!");
             m_gameManager.SetState(GameManager.eStateGame.GAME_OVER);
             return true;
