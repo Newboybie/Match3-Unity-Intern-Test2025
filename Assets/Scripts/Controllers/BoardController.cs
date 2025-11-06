@@ -116,7 +116,6 @@ public class BoardController : MonoBehaviour
                 {
                     Cell oldCellPos = tapped.OldCellPositon;
                     tapped.OldCellPositon = null;
-                    Debug.Log("Move back to old position");
                     MoverCellToTagetPositon(tapped, oldCellPos);
                 }
                 ResetRayCast();
@@ -162,7 +161,6 @@ public class BoardController : MonoBehaviour
 
     private void MoverCellToTagetPositon(Cell tapped, Cell targetPos)
     {
-        Debug.Log("Move tapped in Bottom to old cell board");
         OnGameStateChange(GameManager.eStateGame.PAUSE);
         m_board.MoveItemToCell(tapped, targetPos, () =>
         {
@@ -194,7 +192,6 @@ public class BoardController : MonoBehaviour
         while(CheckIfGameOver() == false)
         {
             yield return new WaitForSeconds(0.5f);
-            Debug.Log("Auto Play Move To Lose");
             m_board.PerformAutoMove(() =>
             {
                 StartCoroutine(CheckMatchedBottomRow());
@@ -349,7 +346,6 @@ public class BoardController : MonoBehaviour
         StartCoroutine(CheckMatchedBottomRow());
         if(m_board.CheckAllCellEmpty())
         {
-            Debug.Log("Winnnn!!!!!!");
             m_gameManager.SetState(GameManager.eStateGame.GAME_WIN);
             return true;
         }
@@ -364,7 +360,6 @@ public class BoardController : MonoBehaviour
             {
                 return false;
             }
-            Debug.Log("Game Over!!!!!!");
             m_gameManager.SetState(GameManager.eStateGame.GAME_OVER);
             return true;
         }
