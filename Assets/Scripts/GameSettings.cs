@@ -14,7 +14,7 @@ public class GameSettings : ScriptableObject
 
     public int LevelMoves = 16;
 
-    public float LevelTime = 30f;
+    public float LevelTime = 6f;
 
     public float TimeForHint = 5f;
 }

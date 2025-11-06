@@ -103,17 +103,21 @@ public class BoardController : MonoBehaviour
             if (m_hitCollider != null) // Tap detected
             {
                 Cell tapped = m_hitCollider.GetComponent<Cell>();
-                if (tapped != null && !tapped.IsEmpty)
+                if (tapped != null && !tapped.IsEmpty && !tapped.IsInBottomCell)
                 {
                     Cell bottomEmpty = m_board.FindBottomEmptyCell();
                     if (bottomEmpty != null)
                     {
-                        OnGameStateChange(GameManager.eStateGame.PAUSE);
-                        m_board.MoveItemToCell(tapped, bottomEmpty, () =>
-                        {
-                            StartCoroutine(CheckMatchedBottomRow());
-                        });
+                        bottomEmpty.OldCellPositon = tapped;
+                        MoverCellToTagetPositon(tapped, bottomEmpty);
                     }
+                }
+                else if (tapped != null && !tapped.IsEmpty && tapped.IsInBottomCell && m_board.IsTimerMode)
+                {
+                    Cell oldCellPos = tapped.OldCellPositon;
+                    tapped.OldCellPositon = null;
+                    Debug.Log("Move back to old position");
+                    MoverCellToTagetPositon(tapped, oldCellPos);
                 }
                 ResetRayCast();
                 CheckIfGameWin();
@@ -154,6 +158,21 @@ public class BoardController : MonoBehaviour
             */
         }
 
+    }
+
+    private void MoverCellToTagetPositon(Cell tapped, Cell targetPos)
+    {
+        Debug.Log("Move tapped in Bottom to old cell board");
+        OnGameStateChange(GameManager.eStateGame.PAUSE);
+        m_board.MoveItemToCell(tapped, targetPos, () =>
+        {
+            StartCoroutine(CheckMatchedBottomRow());
+        });
+    }
+
+    public void EnableTappedBottomCell()
+    {
+        m_board.EnableTappedBottomCell();
     }
 
     public void PerformAutoPlay(bool autoWin)

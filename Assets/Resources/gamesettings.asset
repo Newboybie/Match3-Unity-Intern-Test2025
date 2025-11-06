@@ -17,5 +17,5 @@ MonoBehaviour:
   NumberOfEmptyCells: 5
   MatchesMin: 3
   LevelMoves: 16
-  LevelTime: 30
+  LevelTime: 5
   TimeForHint: 5

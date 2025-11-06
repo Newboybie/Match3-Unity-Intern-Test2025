@@ -16,7 +16,6 @@ public class Board
     }
 
     private int boardSizeX;
-
     private int boardSizeY;
     private int numEmptyCells;
 
@@ -26,6 +25,7 @@ public class Board
     private Transform m_root;
 
     private int m_matchMin;
+    public bool IsTimerMode { get; private set; }
 
     public Board(Transform transform, GameSettings gameSettings)
     {
@@ -262,6 +262,11 @@ public class Board
             if (m_bottomCells[i].Item != null) return false;
         }
         return true;
+    }
+
+    public void EnableTappedBottomCell()
+    {
+        IsTimerMode = true;
     }
 
     internal void FillGapsWithNewItems()

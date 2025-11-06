@@ -16,9 +16,11 @@ public class Cell : MonoBehaviour
     public Cell NeighbourBottom { get; set; }
 
     public Cell NeighbourLeft { get; set; }
+    public Cell OldCellPositon { get; set; }
 
 
     public bool IsEmpty => Item == null;
+    public bool IsInBottomCell => BoardY == -1;
 
     public void Setup(int cellX, int cellY)
     {
