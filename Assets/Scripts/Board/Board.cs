@@ -78,7 +78,7 @@ public class Board
         for (int i = 0; i < numEmptyCells; i++)
         {
             GameObject go = GameObject.Instantiate(prefabBG);
-            Vector3 emptyCellPosOffset = new Vector3(i, -1.5f, 0f);
+            Vector3 emptyCellPosOffset = new Vector3(i + 0.5f, -1.5f, 0f);
 
             go.transform.position = origin + emptyCellPosOffset;
 

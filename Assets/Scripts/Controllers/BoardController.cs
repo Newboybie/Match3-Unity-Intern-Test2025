@@ -341,6 +341,7 @@ public class BoardController : MonoBehaviour
         StartCoroutine(CheckMatchedBottomRow());
         if (m_board.FindBottomEmptyCell() == null)
         {
+            Debug.Log("Game Over!!!!!!");
             m_gameManager.SetState(GameManager.eStateGame.GAME_OVER);
             return true;
         }
