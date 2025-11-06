@@ -93,7 +93,7 @@ public class Board
     internal void Fill()
     {
         int totalCells = boardSizeX * boardSizeY;
-        int numTypes = Enum.GetValues(typeof(NormalItem.eNormalType)).Length;
+        int numTypes = Enum.GetValues(typeof(NormalItem.eNormalType)).Length; // 7 - Types of Fish
 
         int units = totalCells / 3; 
 
